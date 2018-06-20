@@ -4,12 +4,14 @@ import dataPreparation
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import metrics
 import logging
 
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
 make_new_database = False
+use_forest_instead_of_tree = True
 
 
 def calculate_precision(df, x, feature):
@@ -31,12 +33,16 @@ def forecast():
         version = file.read()
     df = pd.read_csv('..\\madridDataBase\\prepared_data_' + version + '.csv', sep=',', header=0)
 
-    # split to train, validation and test sets
+    # split to train, validation and test sets in chronological order 20 20 60
     train_and_validation, test = train_test_split(df, test_size=0.2, shuffle=False)
     train, validation = train_test_split(train_and_validation, test_size=0.2, shuffle=False)
-    
-    # train the decision tree classifier
-    classifier = DecisionTreeClassifier()
+
+    if use_forest_instead_of_tree:
+        classifier = RandomForestClassifier(n_estimators=22, bootstrap=False)
+    else:
+        # train the decision tree classifier
+        classifier = DecisionTreeClassifier()
+
     classifier.fit(train.drop(['Mean TemperatureC'], axis=1), train['Mean TemperatureC'])
     test_predictions = classifier.predict(test.drop(['Mean TemperatureC'], axis=1))
 
@@ -68,7 +74,6 @@ def forecast():
     print('******************')
     print('******************')
 
-    
     logging.info("END TIME")
     # print("features_to_drop:\n", features_to_drop)
     

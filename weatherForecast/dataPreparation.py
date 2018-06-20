@@ -145,7 +145,7 @@ def prepare_data(days_before=3, trending_before=7, average_before=7,
         for i in range(2, average_before):
             features_last_x_days_average(df, features_to_calculate_average, i)
 
-    # create feature of the trend for each date based on 3 and 6 previous days
+    # create feature of the trend for each date based on x previous days
     features_to_calculate_trend = features_to_derive
 
     if trending_before >= 2:
@@ -159,8 +159,6 @@ def prepare_data(days_before=3, trending_before=7, average_before=7,
     # drop columns not in use
     features.remove(toPredict)
     df.drop(features, axis=1, inplace=True)
-    
-    # TODO: remove redundant feature using pearson correlation and mutual information
 
     version = "{}__days_before={}_trending_before={}_average_before={}_fill_missing_from_previous_day={}"\
         .format(datetime.datetime.now().strftime("%Y_%m_%d__%H-%M"), days_before, trending_before, average_before,

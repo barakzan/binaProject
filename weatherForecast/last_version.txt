@@ -1,1 +1,1 @@
-2018_06_06__18-32__days_before=7_trending_before=14_average_before=14_fill_missing_from_previous_day=True
+2018_06_20__15-08__days_before=7_trending_before=14_average_before=14_fill_missing_from_previous_day=False
