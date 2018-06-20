@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import pandas as pd
+import pandas.plotting as plt
 import logging
 import datetime
 import AIWeatherForecast
 
 
-def experiment(max_days=10):
+def experiment(max_days=14):
     df = pd.DataFrame(np.zeros([16, max_days]), columns=[str(i) for i in range(1, max_days + 1)],
                       index=['madrid forest 0', 'austin forest 0', 'madrid tree 0', 'austin tree 0',
                              'madrid forest 1', 'austin forest 1', 'madrid tree 1', 'austin tree 1',
@@ -27,13 +28,13 @@ def experiment(max_days=10):
 
     df.to_csv("results.csv")
 
-	
-def plotResults():
+
+def plot_results():
     df = pd.read_csv("results.csv", index_col=0).transpose()
     print(df.head())
     print(df.columns)
 
-    #plot madrid[0-3] vs days
+    # plot madrid[0-3] vs days
     plt.figure()
     df['madrid 0'].plot()
     df['madrid 1'].plot()
@@ -43,7 +44,7 @@ def plotResults():
     plt.xlabel('Days')
     plt.ylabel('Accuracy[%]')
     
-    #plot austin[0-3] vs days
+    # plot austin[0-3] vs days
     plt.figure()
     df['austin 0'].plot()
     df['austin 1'].plot()
@@ -53,7 +54,7 @@ def plotResults():
     plt.xlabel('Days')
     plt.ylabel('Accuracy[%]')
     
-    #plot madrid[0,2], austin[0,2] vs days
+    # plot madrid[0,2], austin[0,2] vs days
     plt.figure()
     df['madrid 0'].plot(style='y^-')
     df['austin 0'].plot(style='y^-')
@@ -62,12 +63,9 @@ def plotResults():
     plt.title('Mdrid and Austin accuracy comparisson')
     plt.xlabel('Days')
     plt.ylabel('Accuracy[%]')
+    # plot madrid, austin temp histogram
 
-    #plot madrid, austin temp histogram
-	
-	
 
 if __name__ == "__main__":
     experiment()
-	plotResults()
 
