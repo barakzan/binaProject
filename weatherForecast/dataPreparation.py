@@ -6,7 +6,8 @@ import datetime
 
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
 
-raw_data_file = r'..\madridDataBase\weather_madrid_LEMD_1997_2015.csv'
+raw_madrid_data_file = r'..\madridDataBase\weather_madrid_LEMD_1997_2015.csv'
+raw_austin_data_file = r'_'
 labelName = 'CET'
 toPredict = 'Mean TemperatureC'
 
@@ -116,13 +117,17 @@ def features_deriving(df, features, x):
                 _derive_nth_day_feature(df, feature, n)
 
 
-def prepare_data(days_before=3, trending_before=7, average_before=7,
-                 fill_missing_from_previous_day=True):
+def prepare_data(days_before=7, trending_before=7, average_before=7,
+                 fill_missing_from_previous_day=True, use_madrid=True):
 
     logging.info("START TIME")
 
-    """Load the weather history"""
-    df = pd.read_csv(raw_data_file, sep=',', header=0)
+    if use_madrid:
+        """Load the weather history of Madrid"""
+        df = pd.read_csv(raw_madrid_data_file, sep=',', header=0)
+    else:
+        """Load the weather history of Austin"""
+        df = pd.read_csv(raw_austin_data_file, sep=',', header=0)
 
     # remove features that dose not have enough days with data on them
     remove_low_data_features(df)
@@ -145,7 +150,7 @@ def prepare_data(days_before=3, trending_before=7, average_before=7,
         for i in range(2, average_before):
             features_last_x_days_average(df, features_to_calculate_average, i)
 
-    # create feature of the trend for each date based on 3 and 6 previous days
+    # create feature of the trend for each date based on x previous days
     features_to_calculate_trend = features_to_derive
 
     if trending_before >= 2:
@@ -159,14 +164,18 @@ def prepare_data(days_before=3, trending_before=7, average_before=7,
     # drop columns not in use
     features.remove(toPredict)
     df.drop(features, axis=1, inplace=True)
-    
-    # TODO: remove redundant feature using pearson correlation and mutual information
 
-    version = "{}__days_before={}_trending_before={}_average_before={}_fill_missing_from_previous_day={}"\
-        .format(datetime.datetime.now().strftime("%Y_%m_%d__%H-%M"), days_before, trending_before, average_before,
-                fill_missing_from_previous_day)
-    df.to_csv('..\\madridDataBase\\prepared_data_' + version + '.csv')
-    return version
+    if use_madrid:
+        version = "{}___days_before={}_fill_missing_from_previous_day={}"\
+            .format(datetime.datetime.now().strftime("%Y_%m_%d__%H-%M"), days_before, fill_missing_from_previous_day)
+        file_name = '..\\madridDataBase\\Madrid__prepared_data_' + version + '.csv'
+    else:
+        version = "{}___days_before={}_fill_missing_from_previous_day={}" \
+            .format(datetime.datetime.now().strftime("%Y_%m_%d__%H%M"), days_before, fill_missing_from_previous_day)
+        file_name = '..\\austinDataBase\\Austin__prepared_data_' + version + '.csv'
+
+    df.to_csv(file_name)
+    return file_name
 
 
 if __name__ == "__main__":
