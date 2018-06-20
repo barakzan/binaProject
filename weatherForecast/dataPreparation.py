@@ -86,7 +86,7 @@ def features_last_x_days_average(df, features, x):
     logging.info("features_last_" +str(x) + "_days_average")
 
     for feature in features:
-        df[feature+"average_of_last_" + str(x) +"_days"] = df[feature].rolling(window=x).mean()
+        df[feature + "average_of_last_" + str(x) + "_days"] = df[feature].rolling(window=x).mean()
 
 
 def features_trend_type1(df, features, x):
@@ -166,13 +166,13 @@ def prepare_data(days_before=7, trending_before=7, average_before=7,
     df.drop(features, axis=1, inplace=True)
 
     if use_madrid:
-        version = "{}___days_before={}_fill_missing_from_previous_day={}"\
-            .format(datetime.datetime.now().strftime("%Y_%m_%d__%H-%M"), days_before, fill_missing_from_previous_day)
-        file_name = '..\\madridDataBase\\Madrid__prepared_data_' + version + '.csv'
+        version = "Madrid_prepared_data_from_{}_days_before_and_fill_missing_from_previous_day={}"\
+            .format(days_before, fill_missing_from_previous_day)
+        file_name = '..\\madridDataBase\\' + version + '.csv'
     else:
-        version = "{}___days_before={}_fill_missing_from_previous_day={}" \
-            .format(datetime.datetime.now().strftime("%Y_%m_%d__%H%M"), days_before, fill_missing_from_previous_day)
-        file_name = '..\\austinDataBase\\Austin__prepared_data_' + version + '.csv'
+        version = "Austin_prepared_data_from_{}_days_before_and_fill_missing_from_previous_day={}"\
+            .format(days_before, fill_missing_from_previous_day)
+        file_name = '..\\austinDataBase\\' + version + '.csv'
 
     df.to_csv(file_name)
     return file_name

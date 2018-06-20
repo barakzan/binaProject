@@ -10,7 +10,7 @@ from sklearn import metrics
 import logging
 
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
-make_new_database = False
+make_new_database = True
 use_forest_instead_of_tree = True
 
 
@@ -38,15 +38,12 @@ def calculate_results(results_df, print_results=False):
 
     if print_results:
         print('******************')
-        print('******************')
         print("zero degree accuracy = ", round(accurate, 2))
         print("one degrees accuracy = ", round(one_degree, 2))
         print("two degrees accuracy = ", round(two_degrees, 2))
         print("three degrees accuracy = ", round(three_degrees, 2))
         print("- - - - - - - - - - - - - - - - - - - ")
         print("parameter_to_improve = ", round(parameter_to_improve, 3))
-        # sprint(results_df['abs_diff'].value_counts())
-        print('******************')
         print('******************')
 
     return [accurate, one_degree, two_degrees, three_degrees]
