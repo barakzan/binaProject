@@ -1,0 +1,1 @@
+2018_06_20__15-53__days_before=14_trending_before=14_average_before=14_fill_missing_from_previous_day=True

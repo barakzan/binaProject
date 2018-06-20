@@ -10,7 +10,7 @@ from sklearn import metrics
 import logging
 
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
-make_new_database = False
+make_new_database = True
 use_forest_instead_of_tree = True
 
 
@@ -22,31 +22,7 @@ def calculate_precision(df, x, feature):
         df["precision_up_to_" + str(i) + "_degrees"] = np.where(df[feature] <= i, 1, 0)
 
 
-def forecast():
-    if make_new_database:
-        version = dataPreparation.prepare_data(fill_missing_from_previous_day=False,
-                                               days_before=7, trending_before=14, average_before=14)
-        file = open("last_version.txt", 'w')
-        file.write(version)
-    else:
-        file = open("last_version.txt", 'r')
-        version = file.read()
-    df = pd.read_csv('..\\madridDataBase\\prepared_data_' + version + '.csv', sep=',', header=0)
-
-    # split to train, validation and test sets in chronological order 20 20 60
-    train_and_validation, test = train_test_split(df, test_size=0.2, shuffle=False)
-    train, validation = train_test_split(train_and_validation, test_size=0.2, shuffle=False)
-
-    if use_forest_instead_of_tree:
-        classifier = RandomForestClassifier(n_estimators=22, bootstrap=False)
-    else:
-        # train the decision tree classifier
-        classifier = DecisionTreeClassifier()
-
-    classifier.fit(train.drop(['Mean TemperatureC'], axis=1), train['Mean TemperatureC'])
-    test_predictions = classifier.predict(test.drop(['Mean TemperatureC'], axis=1))
-
-    results_df = pd.DataFrame({'real_value': test['Mean TemperatureC'], 'test_predictions': test_predictions})
+def calculate_results(results_df, print_results=False):
     results_df['abs_diff'] = abs(results_df['real_value'] - results_df['test_predictions'])
     calculate_precision(results_df, 4, 'abs_diff')
     total = results_df["precision_up_to_1_degrees"].count()
@@ -60,23 +36,69 @@ def forecast():
     three_degrees = (three_degrees/total)*100
     parameter_to_improve = (3*accurate + 2*one_degree + two_degrees) / 6
 
-    print('******************')
-    print('******************')
+    if print_results:
+        print('******************')
+        print('******************')
+        print("zero degree accuracy = ", round(accurate, 2))
+        print("one degrees accuracy = ", round(one_degree, 2))
+        print("two degrees accuracy = ", round(two_degrees, 2))
+        print("three degrees accuracy = ", round(three_degrees, 2))
+        print("- - - - - - - - - - - - - - - - - - - ")
+        print("parameter_to_improve = ", round(parameter_to_improve, 3))
+        # sprint(results_df['abs_diff'].value_counts())
+        print('******************')
+        print('******************')
 
-    print("zero degree accuracy = ", round(accurate, 2))
-    print("one degrees accuracy = ", round(one_degree, 2))
-    print("two degrees accuracy = ", round(two_degrees, 2))
-    print("three degrees accuracy = ", round(three_degrees, 2))
-    print("- - - - - - - - - - - - - - - - - - - ")
-    print("parameter_to_improve = ", round(parameter_to_improve, 3))
+    return [accurate, one_degree, two_degrees, three_degrees]
 
-    # sprint(results_df['abs_diff'].value_counts())
-    print('******************')
-    print('******************')
+
+def forecast(days_before=7):
+    trending_before = days_before
+    average_before = days_before
+
+    if make_new_database:
+        madrid_file_name = dataPreparation.prepare_data(days_before, trending_before, average_before,
+                                                        fill_missing_from_previous_day=True, use_madrid=True)
+        austin_file_name = dataPreparation.prepare_data(days_before, trending_before, average_before,
+                                                        fill_missing_from_previous_day=True, use_madrid=False)
+        madrid_file = open("last_madrid_version.txt", 'w')
+        madrid_file.write(madrid_file_name)
+        austin_file = open("last_austin_version.txt", 'w')
+        austin_file.write(austin_file_name)
+    else:
+        madrid_file = open("last_madrid_version.txt", 'r')
+        austin_file = open("last_austin_version.txt", 'r')
+        madrid_file_name = madrid_file.read()
+        austin_file_name = austin_file.read()
+        
+    madrid_df = pd.read_csv(madrid_file_name, sep=',', header=0)
+    austin_df = pd.read_csv(austin_file_name, sep=',', header=0)
+
+    # split to train, validation and test sets in chronological order 20 20 60
+    train_and_validation, test = train_test_split(madrid_df, test_size=0.2, shuffle=False)
+    train, validation = train_test_split(train_and_validation, test_size=0.2, shuffle=False)
+
+    if use_forest_instead_of_tree:
+        classifier = RandomForestClassifier(n_estimators=22, bootstrap=False)
+    else:
+        # train the decision tree classifier
+        classifier = DecisionTreeClassifier()
+
+    classifier.fit(train.drop(['Mean TemperatureC'], axis=1), train['Mean TemperatureC'])
+    madrid_test_predictions = classifier.predict(test.drop(['Mean TemperatureC'], axis=1))
+    austin_test_predictions = classifier.predict(austin_df.drop(['Mean TemperatureC'], axis=1))
+
+    madrid_results_df = pd.DataFrame({'real_value': test['Mean TemperatureC'],
+                                      'test_predictions': madrid_test_predictions})
+    austin_results_df = pd.DataFrame({'real_value': test['Mean TemperatureC'],
+                                      'test_predictions': austin_test_predictions})
+    madrid_position = calculate_results(madrid_results_df, print_results=True)
+    austin_position = calculate_results(austin_results_df, print_results=True)
 
     logging.info("END TIME")
-    # print("features_to_drop:\n", features_to_drop)
-    
+
+    return [madrid_position, austin_position]
+
 
 if __name__ == '__main__':
     forecast()
