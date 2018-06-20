@@ -2,6 +2,7 @@
 import pandas as pd
 import dataPreparation
 import numpy as np
+from pathlib import Path
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
@@ -11,7 +12,6 @@ import logging
 
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
 make_new_database = True
-use_forest_instead_of_tree = True
 
 
 def calculate_precision(df, x, feature):
@@ -49,25 +49,22 @@ def calculate_results(results_df, print_results=False):
     return [accurate, one_degree, two_degrees, three_degrees]
 
 
-def forecast(days_before=7):
+def forecast(days_before=7, use_forest_instead_of_tree=True, fill_missing_from_previous_day=True):
     trending_before = days_before
     average_before = days_before
 
-    if make_new_database:
-        austin_file_name = dataPreparation.prepare_data(days_before, trending_before, average_before,
-                                                        fill_missing_from_previous_day=True, use_madrid=False)
-        madrid_file_name = dataPreparation.prepare_data(days_before, trending_before, average_before,
-                                                        fill_missing_from_previous_day=True, use_madrid=True)
-        madrid_file = open("last_madrid_version.txt", 'w')
-        madrid_file.write(madrid_file_name)
-        austin_file = open("last_austin_version.txt", 'w')
-        austin_file.write(austin_file_name)
-    else:
-        madrid_file = open("last_madrid_version.txt", 'r')
-        austin_file = open("last_austin_version.txt", 'r')
-        madrid_file_name = madrid_file.read()
-        austin_file_name = austin_file.read()
-        
+    madrid_file_name = dataPreparation.get_file_name('madrid', days_before, fill_missing_from_previous_day)
+    madrid_file = Path(madrid_file_name)
+    if not madrid_file.is_file():
+        dataPreparation.prepare_data('madrid', days_before, trending_before, average_before,
+                                     fill_missing_from_previous_day)
+
+    austin_file_name = dataPreparation.get_file_name('austin', days_before, fill_missing_from_previous_day)
+    austin_file = Path(austin_file_name)
+    if not austin_file.is_file():
+        dataPreparation.prepare_data('austin', days_before, trending_before, average_before,
+                                     fill_missing_from_previous_day)
+
     madrid_df = pd.read_csv(madrid_file_name, sep=',', header=0)
     austin_df = pd.read_csv(austin_file_name, sep=',', header=0)
 
@@ -89,8 +86,8 @@ def forecast(days_before=7):
                                       'test_predictions': madrid_test_predictions})
     austin_results_df = pd.DataFrame({'real_value': austin_df['Mean TemperatureC'],
                                       'test_predictions': austin_test_predictions})
-    madrid_position = calculate_results(madrid_results_df, print_results=True)
-    austin_position = calculate_results(austin_results_df, print_results=True)
+    madrid_position = calculate_results(madrid_results_df, print_results=False)
+    austin_position = calculate_results(austin_results_df, print_results=False)
 
     logging.info("END TIME")
 

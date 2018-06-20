@@ -6,10 +6,15 @@ import datetime
 
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
 
-raw_madrid_data_file = r'..\madridDataBase\weather_madrid_LEMD_1997_2015.csv'
-raw_austin_data_file = r'..\austinDataBase\austin_weather.csv'
+raw_madrid_data_file = r'..\madridDataBase\original_data\weather_madrid_LEMD_1997_2015.csv'
+raw_austin_data_file = r'..\austinDataBase\original_data\austin_weather.csv'
 labelName = 'CET'
 toPredict = 'Mean TemperatureC'
+
+
+def get_file_name(city, days_before, fill_missing_from_previous_day):
+    return '..\\{}DataBase\\{}_prepared_data_from_{}_days_before_and_fill_missing_from_previous_day={}.csv'\
+        .format(city, city, days_before, fill_missing_from_previous_day)
 
 
 def remove_low_data_features(df, threshold=2 / 3):
@@ -117,17 +122,18 @@ def features_deriving(df, features, x):
                 _derive_nth_day_feature(df, feature, n)
 
 
-def prepare_data(days_before=7, trending_before=7, average_before=7,
-                 fill_missing_from_previous_day=True, use_madrid=True):
+def prepare_data(city, days_before=7, trending_before=7, average_before=7,
+                 fill_missing_from_previous_day=True):
 
     logging.info("START TIME")
 
-    if use_madrid:
-        """Load the weather history of Madrid"""
+    if city == 'madrid':
         df = pd.read_csv(raw_madrid_data_file, sep=',', header=0)
-    else:
-        """Load the weather history of Austin"""
+    elif city == 'austin':
         df = pd.read_csv(raw_austin_data_file, sep=',', header=0)
+    else:
+        logging.info("ERROR with city name")
+        return
 
     # remove features that dose not have enough days with data on them
     remove_low_data_features(df)
@@ -165,15 +171,7 @@ def prepare_data(days_before=7, trending_before=7, average_before=7,
     features.remove(toPredict)
     df.drop(features, axis=1, inplace=True)
 
-    if use_madrid:
-        version = "Madrid_prepared_data_from_{}_days_before_and_fill_missing_from_previous_day={}"\
-            .format(days_before, fill_missing_from_previous_day)
-        file_name = '..\\madridDataBase\\' + version + '.csv'
-    else:
-        version = "Austin_prepared_data_from_{}_days_before_and_fill_missing_from_previous_day={}"\
-            .format(days_before, fill_missing_from_previous_day)
-        file_name = '..\\austinDataBase\\' + version + '.csv'
-
+    file_name = get_file_name(city, days_before, fill_missing_from_previous_day)
     df.to_csv(file_name)
     return file_name
 
