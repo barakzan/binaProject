@@ -27,7 +27,47 @@ def experiment(max_days=10):
 
     df.to_csv("results.csv")
 
+	
+def plotResults():
+    df = pd.read_csv("results.csv", index_col=0).transpose()
+    print(df.head())
+    print(df.columns)
+
+    #plot madrid[0-3] vs days
+    plt.figure()
+    df['madrid 0'].plot()
+    df['madrid 1'].plot()
+    df['madrid 2'].plot()
+    df['madrid 3'].plot()
+    plt.title('Madrid accuracy for number of days')
+    plt.xlabel('Days')
+    plt.ylabel('Accuracy[%]')
+    
+    #plot austin[0-3] vs days
+    plt.figure()
+    df['austin 0'].plot()
+    df['austin 1'].plot()
+    df['austin 2'].plot()
+    df['austin 3'].plot()
+    plt.title('Austin accuracy for number of days')
+    plt.xlabel('Days')
+    plt.ylabel('Accuracy[%]')
+    
+    #plot madrid[0,2], austin[0,2] vs days
+    plt.figure()
+    df['madrid 0'].plot(style='y^-')
+    df['austin 0'].plot(style='y^-')
+    df['madrid 2'].plot()
+    df['austin 2'].plot()
+    plt.title('Mdrid and Austin accuracy comparisson')
+    plt.xlabel('Days')
+    plt.ylabel('Accuracy[%]')
+
+    #plot madrid, austin temp histogram
+	
+	
 
 if __name__ == "__main__":
     experiment()
+	plotResults()
 
