@@ -7,7 +7,7 @@ import datetime
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
 
 raw_madrid_data_file = r'..\madridDataBase\weather_madrid_LEMD_1997_2015.csv'
-raw_austin_data_file = r'_'
+raw_austin_data_file = r'..\austinDataBase\austin_weather.csv'
 labelName = 'CET'
 toPredict = 'Mean TemperatureC'
 
@@ -94,7 +94,7 @@ def features_trend_type1(df, features, x):
     logging.info("features_trend_type1 of last " + str(x) + " days")
 
     for feature in features:
-        df[feature+"trend_in_last_" + str(x) +"_days"] = df[feature].diff()\
+        df[feature + "trend_in_last_" + str(x) + "_days"] = df[feature].diff()\
                 .apply(_sign_sqrt).rolling(window=x).mean().apply(_sign_square)
 
 

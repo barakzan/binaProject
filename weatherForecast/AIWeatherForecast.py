@@ -10,7 +10,7 @@ from sklearn import metrics
 import logging
 
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
-make_new_database = True
+make_new_database = False
 use_forest_instead_of_tree = True
 
 
@@ -57,10 +57,10 @@ def forecast(days_before=7):
     average_before = days_before
 
     if make_new_database:
-        madrid_file_name = dataPreparation.prepare_data(days_before, trending_before, average_before,
-                                                        fill_missing_from_previous_day=True, use_madrid=True)
         austin_file_name = dataPreparation.prepare_data(days_before, trending_before, average_before,
                                                         fill_missing_from_previous_day=True, use_madrid=False)
+        madrid_file_name = dataPreparation.prepare_data(days_before, trending_before, average_before,
+                                                        fill_missing_from_previous_day=True, use_madrid=True)
         madrid_file = open("last_madrid_version.txt", 'w')
         madrid_file.write(madrid_file_name)
         austin_file = open("last_austin_version.txt", 'w')
@@ -90,7 +90,7 @@ def forecast(days_before=7):
 
     madrid_results_df = pd.DataFrame({'real_value': test['Mean TemperatureC'],
                                       'test_predictions': madrid_test_predictions})
-    austin_results_df = pd.DataFrame({'real_value': test['Mean TemperatureC'],
+    austin_results_df = pd.DataFrame({'real_value': austin_df['Mean TemperatureC'],
                                       'test_predictions': austin_test_predictions})
     madrid_position = calculate_results(madrid_results_df, print_results=True)
     austin_position = calculate_results(austin_results_df, print_results=True)
