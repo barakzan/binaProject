@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import pandas as pd
-import pandas.plotting as plt
+import matplotlib.pyplot as plt
 import logging
 import datetime
 import AIWeatherForecast
+import dataPreparation
 
 
 def experiment(max_days=14):
@@ -31,41 +32,105 @@ def experiment(max_days=14):
 
 def plot_results():
     df = pd.read_csv("results.csv", index_col=0).transpose()
-    print(df.head())
-    print(df.columns)
+    temp_df = pd.DataFrame()
+    degree_sign = u'\N{DEGREE SIGN}'
 
     # plot madrid[0-3] vs days
-    plt.figure()
-    df['madrid 0'].plot()
-    df['madrid 1'].plot()
-    df['madrid 2'].plot()
-    df['madrid 3'].plot()
-    plt.title('Madrid accuracy for number of days')
+    plt.figure(1)
+    temp_df['0' + degree_sign + ' accuracy'] = df['madrid forest 0']
+    temp_df['1' + degree_sign + ' accuracy'] = df['madrid forest 1']
+    temp_df['2' + degree_sign + ' accuracy'] = df['madrid forest 2']
+    temp_df['3' + degree_sign + ' accuracy'] = df['madrid forest 3']
+    temp_df['0' + degree_sign + ' accuracy'].plot(legend=True)
+    temp_df['1' + degree_sign + ' accuracy'].plot(legend=True)
+    temp_df['2' + degree_sign + ' accuracy'].plot(legend=True)
+    temp_df['3' + degree_sign + ' accuracy'].plot(legend=True)
+    plt.title('Madrid accuracy for number of days used with forest clf')
     plt.xlabel('Days')
+    plt.xticks(range(14), range(1, 15))
     plt.ylabel('Accuracy[%]')
-    
+    plt.legend(loc=4)
+
     # plot austin[0-3] vs days
-    plt.figure()
-    df['austin 0'].plot()
-    df['austin 1'].plot()
-    df['austin 2'].plot()
-    df['austin 3'].plot()
-    plt.title('Austin accuracy for number of days')
+    plt.figure(2)
+    temp_df['0' + degree_sign + ' accuracy'] = df['austin forest 0']
+    temp_df['1' + degree_sign + ' accuracy'] = df['austin forest 1']
+    temp_df['2' + degree_sign + ' accuracy'] = df['austin forest 2']
+    temp_df['3' + degree_sign + ' accuracy'] = df['austin forest 3']
+    temp_df['0' + degree_sign + ' accuracy'].plot(legend=True)
+    temp_df['1' + degree_sign + ' accuracy'].plot(legend=True)
+    temp_df['2' + degree_sign + ' accuracy'].plot(legend=True)
+    temp_df['3' + degree_sign + ' accuracy'].plot(legend=True)
+    plt.title('Austin accuracy for number of days used with forest clf')
     plt.xlabel('Days')
+    plt.xticks(range(14), range(1, 15))
     plt.ylabel('Accuracy[%]')
-    
+    plt.legend(loc=4)
+
+    # plot madrid[0-3] vs days
+    plt.figure(3)
+    temp_df['0' + degree_sign + ' accuracy'] = df['madrid tree 0']
+    temp_df['1' + degree_sign + ' accuracy'] = df['madrid tree 1']
+    temp_df['2' + degree_sign + ' accuracy'] = df['madrid tree 2']
+    temp_df['3' + degree_sign + ' accuracy'] = df['madrid tree 3']
+    temp_df['0' + degree_sign + ' accuracy'].plot(legend=True)
+    temp_df['1' + degree_sign + ' accuracy'].plot(legend=True)
+    temp_df['2' + degree_sign + ' accuracy'].plot(legend=True)
+    temp_df['3' + degree_sign + ' accuracy'].plot(legend=True)
+    plt.title('Madrid accuracy for number of days used with tree clf')
+    plt.xlabel('Days')
+    plt.xticks(range(14), range(1, 15))
+    plt.ylabel('Accuracy[%]')
+    plt.legend(loc=4)
+
+    # plot austin[0-3] vs days
+    plt.figure(4)
+    temp_df['0' + degree_sign + ' accuracy'] = df['austin tree 0']
+    temp_df['1' + degree_sign + ' accuracy'] = df['austin tree 1']
+    temp_df['2' + degree_sign + ' accuracy'] = df['austin tree 2']
+    temp_df['3' + degree_sign + ' accuracy'] = df['austin tree 3']
+    temp_df['0' + degree_sign + ' accuracy'].plot(legend=True)
+    temp_df['1' + degree_sign + ' accuracy'].plot(legend=True)
+    temp_df['2' + degree_sign + ' accuracy'].plot(legend=True)
+    temp_df['3' + degree_sign + ' accuracy'].plot(legend=True)
+    plt.title('Austin accuracy for number of days used with tree clf')
+    plt.xlabel('Days')
+    plt.xticks(range(14), range(1, 15))
+    plt.ylabel('Accuracy[%]')
+    plt.legend(loc=4)
+
     # plot madrid[0,2], austin[0,2] vs days
-    plt.figure()
-    df['madrid 0'].plot(style='y^-')
-    df['austin 0'].plot(style='y^-')
-    df['madrid 2'].plot()
-    df['austin 2'].plot()
-    plt.title('Mdrid and Austin accuracy comparisson')
+    plt.figure(5)
+    temp_df['madrid 0' + degree_sign + ' accuracy'] = df['madrid tree 0']
+    temp_df['austin 0' + degree_sign + ' accuracy'] = df['austin tree 0']
+    temp_df['madrid 2' + degree_sign + ' accuracy'] = df['madrid tree 2']
+    temp_df['austin 2' + degree_sign + ' accuracy'] = df['austin tree 2']
+    temp_df['madrid 0' + degree_sign + ' accuracy'].plot(style='r^-')
+    temp_df['austin 0' + degree_sign + ' accuracy'].plot(style='g^-')
+    temp_df['madrid 2' + degree_sign + ' accuracy'].plot(style='r')
+    temp_df['austin 2' + degree_sign + ' accuracy'].plot(style='g')
+    plt.title('Mdrid and Austin accuracy comparisson with tree clf')
     plt.xlabel('Days')
+    plt.xticks(range(14), range(1, 15))
     plt.ylabel('Accuracy[%]')
+    plt.legend(loc=4)
+
     # plot madrid, austin temp histogram
+    madrid_df = pd.read_csv(dataPreparation.raw_madrid_data_file, index_col=0)
+    austin_df = pd.read_csv(dataPreparation.raw_austin_data_file, index_col=0)
+    fig, ax = plt.subplots()
+    madrid_temps, madrid_bins = np.histogram(madrid_df["Mean TemperatureC"].dropna(), bins=40, normed=True)
+    austin_temps, austin_bins = np.histogram(austin_df["Mean TemperatureC"].dropna(), bins=40, normed=True)
+    width = (madrid_bins[1] - madrid_bins[0]) / 2
+    ax.bar(madrid_bins[:-1], madrid_temps, width=width, facecolor='cornflowerblue')
+    ax.bar(austin_bins[:-1] + width, austin_temps, width=width, facecolor='seagreen')
+    plt.title('Madrid (blue) and Austin (green) temperature histogram')
+    plt.xlabel('temperature[C'+ degree_sign + ']')
+
+    plt.show()
 
 
 if __name__ == "__main__":
-    experiment()
+    #experiment()
+    plot_results()
 
