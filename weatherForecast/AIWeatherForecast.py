@@ -70,28 +70,48 @@ def forecast(days_before=7, use_forest_instead_of_tree=True, fill_missing_from_p
 
     # split to train, validation and test sets in chronological order 20 20 60
     train_and_validation, test = train_test_split(madrid_df, test_size=0.2, shuffle=False)
-    train, validation = train_test_split(train_and_validation, test_size=0.2, shuffle=False)
+    train, validation = train_test_split(train_and_validation, test_size=0.25, shuffle=False)
 
+    # makes a new joined data frame
+    joined_df = pd.concat([austin_df, train], ignore_index=True)
+
+    # choose tree or forest classifier
     if use_forest_instead_of_tree:
         classifier = RandomForestClassifier(n_estimators=22, bootstrap=False)
+        joined_classifier = RandomForestClassifier(n_estimators=22, bootstrap=False)
     else:
         # train the decision tree classifier
         classifier = DecisionTreeClassifier()
+        joined_classifier = DecisionTreeClassifier()
 
+    # train madrid classifier
     classifier.fit(train.drop(['Mean TemperatureC'], axis=1), train['Mean TemperatureC'])
+
+    # predict
     madrid_test_predictions = classifier.predict(test.drop(['Mean TemperatureC'], axis=1))
     austin_test_predictions = classifier.predict(austin_df.drop(['Mean TemperatureC'], axis=1))
 
+    # train joined classifier
+    joined_classifier.fit(joined_df.drop(['Mean TemperatureC'], axis=1), joined_df['Mean TemperatureC'])
+
+    # predict
+    madrid_joined_test_predictions = joined_classifier.predict(test.drop(['Mean TemperatureC'], axis=1))
+
+    # get results
     madrid_results_df = pd.DataFrame({'real_value': test['Mean TemperatureC'],
                                       'test_predictions': madrid_test_predictions})
     austin_results_df = pd.DataFrame({'real_value': austin_df['Mean TemperatureC'],
                                       'test_predictions': austin_test_predictions})
-    madrid_position = calculate_results(madrid_results_df, print_results=False)
-    austin_position = calculate_results(austin_results_df, print_results=False)
+    madrid_joined_results_df = pd.DataFrame({'real_value': test['Mean TemperatureC'],
+                                             'test_predictions': madrid_joined_test_predictions})
+    #calculate precision
+    madrid_precision = calculate_results(madrid_results_df, print_results=False)
+    austin_precision = calculate_results(austin_results_df, print_results=False)
+    madrid_joined_precision = calculate_results(madrid_joined_results_df, print_results=False)
 
-    logging.info("END TIME")
+    logging.info("END forecast: " + str(days_before) + " days before, forest: " + str(use_forest_instead_of_tree))
 
-    return [madrid_position, austin_position]
+    return [madrid_precision, austin_precision, madrid_joined_precision]
 
 
 if __name__ == '__main__':

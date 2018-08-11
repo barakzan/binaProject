@@ -9,23 +9,31 @@ import dataPreparation
 
 
 def experiment(max_days=14):
-    df = pd.DataFrame(np.zeros([16, max_days]), columns=[str(i) for i in range(1, max_days + 1)],
-                      index=['madrid forest 0', 'austin forest 0', 'madrid tree 0', 'austin tree 0',
-                             'madrid forest 1', 'austin forest 1', 'madrid tree 1', 'austin tree 1',
-                             'madrid forest 2', 'austin forest 2', 'madrid tree 2', 'austin tree 2',
-                             'madrid forest 3', 'austin forest 3', 'madrid tree 3', 'austin tree 3'])
+    df = pd.DataFrame(np.zeros([24, max_days]), columns=[str(i) for i in range(1, max_days + 1)],
+                      index=['madrid forest 0', 'austin forest 0', 'joined forest 0',
+                             'madrid tree 0', 'austin tree 0', 'joined tree 0',
+                             'madrid forest 1', 'austin forest 1', 'joined forest 1',
+                             'madrid tree 1', 'austin tree 1', 'joined tree 1',
+                             'madrid forest 2', 'austin forest 2', 'joined forest 2',
+                             'madrid tree 2', 'austin tree 2', 'joined tree 2',
+                             'madrid forest 3', 'austin forest 3', 'joined forest 3',
+                             'madrid tree 3', 'austin tree 3', 'joined tree 3'])
     for i in range(1, max_days + 1):
         forest_res = AIWeatherForecast.forecast(i, use_forest_instead_of_tree=True)
         madrid_forest_res = forest_res[0]
         austin_forest_res = forest_res[1]
+        joined_forest_res = forest_res[2]
         tree_res = AIWeatherForecast.forecast(i, use_forest_instead_of_tree=False)
         madrid_tree_res = tree_res[0]
         austin_tree_res = tree_res[1]
+        joined_tree_res = tree_res[2]
         for j in range(0, 4):
             df.loc['madrid forest ' + str(j), str(i)] = round(madrid_forest_res[j], 2)
             df.loc['austin forest ' + str(j), str(i)] = round(austin_forest_res[j], 2)
+            df.loc['joined forest ' + str(j), str(i)] = round(joined_forest_res[j], 2)
             df.loc['madrid tree ' + str(j), str(i)] = round(madrid_tree_res[j], 2)
             df.loc['austin tree ' + str(j), str(i)] = round(austin_tree_res[j], 2)
+            df.loc['joined tree ' + str(j), str(i)] = round(joined_tree_res[j], 2)
 
     df.to_csv("results.csv")
 
@@ -36,7 +44,7 @@ def plot_results():
     degree_sign = u'\N{DEGREE SIGN}'
 
     # plot madrid[0-3] vs days tree
-    plt.figure(3)
+    plt.figure(1)
     temp_df['0' + degree_sign + ' accuracy'] = df['madrid tree 0']
     temp_df['1' + degree_sign + ' accuracy'] = df['madrid tree 1']
     temp_df['2' + degree_sign + ' accuracy'] = df['madrid tree 2']
@@ -45,30 +53,14 @@ def plot_results():
     temp_df['1' + degree_sign + ' accuracy'].plot(legend=True)
     temp_df['2' + degree_sign + ' accuracy'].plot(legend=True)
     temp_df['3' + degree_sign + ' accuracy'].plot(legend=True)
-    plt.title('Madrid accuracy for number of days used with tree clf')
+    plt.title('Madrid accuracy degees comparisson for number of days used with tree clf')
     plt.xlabel('Days')
     plt.xticks(range(14), range(1, 15))
     plt.ylabel('Accuracy[%]')
     plt.legend(loc=4)
 
-
-    # # plot madrid[0-3] vs days forest
-    # plt.figure(1)
-    # temp_df['0' + degree_sign + ' accuracy'] = df['madrid forest 0']
-    # temp_df['1' + degree_sign + ' accuracy'] = df['madrid forest 1']
-    # temp_df['2' + degree_sign + ' accuracy'] = df['madrid forest 2']
-    # temp_df['3' + degree_sign + ' accuracy'] = df['madrid forest 3']
-    # temp_df['0' + degree_sign + ' accuracy'].plot(legend=True)
-    # temp_df['1' + degree_sign + ' accuracy'].plot(legend=True)
-    # temp_df['2' + degree_sign + ' accuracy'].plot(legend=True)
-    # temp_df['3' + degree_sign + ' accuracy'].plot(legend=True)
-    # plt.title('Madrid accuracy for number of days used with forest clf')
-    # plt.xlabel('Days')
-    # plt.xticks(range(14), range(1, 15))
-    # plt.ylabel('Accuracy[%]')
-    # plt.legend(loc=4)
-
     # plot madrid[0,2] vs days - tree vs forest
+    plt.figure(2)
     temp_df['tree 0' + degree_sign + ' accuracy'] = df['madrid tree 0']
     temp_df['forest 0' + degree_sign + ' accuracy'] = df['madrid forest 0']
     temp_df['tree 2' + degree_sign + ' accuracy'] = df['madrid tree 2']
@@ -77,39 +69,78 @@ def plot_results():
     temp_df['forest 0' + degree_sign + ' accuracy'].plot(style='g^-')
     temp_df['tree 2' + degree_sign + ' accuracy'].plot(style='r')
     temp_df['forest 2' + degree_sign + ' accuracy'].plot(style='g')
+    plt.title('Madrid accuracy comparisson tree clf vs forest clf')
+    plt.xlabel('Days')
+    plt.xticks(range(14), range(1, 15))
+    plt.ylabel('Accuracy[%]')
+    plt.legend(loc=4)
 
-    # # plot austin[0-3] vs days
-    # plt.figure(2)
-    # temp_df['0' + degree_sign + ' accuracy'] = df['austin forest 0']
-    # temp_df['1' + degree_sign + ' accuracy'] = df['austin forest 1']
-    # temp_df['2' + degree_sign + ' accuracy'] = df['austin forest 2']
-    # temp_df['3' + degree_sign + ' accuracy'] = df['austin forest 3']
-    # temp_df['0' + degree_sign + ' accuracy'].plot(legend=True)
-    # temp_df['1' + degree_sign + ' accuracy'].plot(legend=True)
-    # temp_df['2' + degree_sign + ' accuracy'].plot(legend=True)
-    # temp_df['3' + degree_sign + ' accuracy'].plot(legend=True)
-    # plt.title('Austin accuracy for number of days used with forest clf')
-    # plt.xlabel('Days')
-    # plt.xticks(range(14), range(1, 15))
-    # plt.ylabel('Accuracy[%]')
-    # plt.legend(loc=4)
+    # plot madrid when trained on both  vs days tree clf
+    plt.figure(3)
+    temp_df['joined 0' + degree_sign + ' accuracy'] = df['joined tree 0']
+    temp_df['madrid 0' + degree_sign + ' accuracy'] = df['madrid tree 0']
+    temp_df['joined 2' + degree_sign + ' accuracy'] = df['joined tree 2']
+    temp_df['madrid 2' + degree_sign + ' accuracy'] = df['madrid tree 2']
+    temp_df['joined 0' + degree_sign + ' accuracy'].plot(style='r^-')
+    temp_df['madrid 0' + degree_sign + ' accuracy'].plot(style='g^-')
+    temp_df['joined 2' + degree_sign + ' accuracy'].plot(style='r')
+    temp_df['madrid 2' + degree_sign + ' accuracy'].plot(style='g')
+    plt.title('Madrid accuracy comparisson between trained on austin and madrid data vs only madrid data\n for number of days used with tree clf')
+    plt.xlabel('Days')
+    plt.xticks(range(14), range(1, 15))
+    plt.ylabel('Accuracy[%]')
+    plt.legend(loc=4)
+
+    # plot madrid when trained on both  vs days forest clf
+    plt.figure(4)
+    temp_df['joined 0' + degree_sign + ' accuracy'] = df['joined forest 0']
+    temp_df['madrid 0' + degree_sign + ' accuracy'] = df['madrid forest 0']
+    temp_df['joined 2' + degree_sign + ' accuracy'] = df['joined forest 2']
+    temp_df['madrid 2' + degree_sign + ' accuracy'] = df['madrid forest 2']
+    temp_df['joined 0' + degree_sign + ' accuracy'].plot(style='r^-')
+    temp_df['madrid 0' + degree_sign + ' accuracy'].plot(style='g^-')
+    temp_df['joined 2' + degree_sign + ' accuracy'].plot(style='r')
+    temp_df['madrid 2' + degree_sign + ' accuracy'].plot(style='g')
+    plt.title('Madrid accuracy comparisson between trained on austin and madrid data vs only madrid data\n for number of days used with forest clf')
+    plt.xlabel('Days')
+    plt.xticks(range(14), range(1, 15))
+    plt.ylabel('Accuracy[%]')
+    plt.legend(loc=4)
+
+    # plot madrid[0,2], austin[0,2] vs days tree clf
+    plt.figure(5)
+    temp_df['madrid 0' + degree_sign + ' accuracy'] = df['madrid tree 0']
+    temp_df['austin 0' + degree_sign + ' accuracy'] = df['austin tree 0']
+    temp_df['madrid 2' + degree_sign + ' accuracy'] = df['madrid tree 2']
+    temp_df['austin 2' + degree_sign + ' accuracy'] = df['austin tree 2']
+    temp_df['madrid 0' + degree_sign + ' accuracy'].plot(style='r^-')
+    temp_df['austin 0' + degree_sign + ' accuracy'].plot(style='g^-')
+    temp_df['madrid 2' + degree_sign + ' accuracy'].plot(style='r')
+    temp_df['austin 2' + degree_sign + ' accuracy'].plot(style='g')
+    plt.title('Madrid and Austin accuracy comparision when trained on madrid data only\nwith tree clf')
+    plt.xlabel('Days')
+    plt.xticks(range(14), range(1, 15))
+    plt.ylabel('Accuracy[%]')
+    plt.legend(loc=4)
+
+    # plot madrid[0,2], austin[0,2] vs days forest clf
+    plt.figure(6)
+    temp_df['madrid 0' + degree_sign + ' accuracy'] = df['madrid forest 0']\
 
 
-    # # plot austin[0-3] vs days
-    # plt.figure(4)
-    # temp_df['0' + degree_sign + ' accuracy'] = df['austin tree 0']
-    # temp_df['1' + degree_sign + ' accuracy'] = df['austin tree 1']
-    # temp_df['2' + degree_sign + ' accuracy'] = df['austin tree 2']
-    # temp_df['3' + degree_sign + ' accuracy'] = df['austin tree 3']
-    # temp_df['0' + degree_sign + ' accuracy'].plot(legend=True)
-    # temp_df['1' + degree_sign + ' accuracy'].plot(legend=True)
-    # temp_df['2' + degree_sign + ' accuracy'].plot(legend=True)
-    # temp_df['3' + degree_sign + ' accuracy'].plot(legend=True)
-    # plt.title('Austin accuracy for number of days used with tree clf')
-    # plt.xlabel('Days')
-    # plt.xticks(range(14), range(1, 15))
-    # plt.ylabel('Accuracy[%]')
-    # plt.legend(loc=4)
+
+    temp_df['austin 0' + degree_sign + ' accuracy'] = df['austin forest 0']
+    temp_df['madrid 2' + degree_sign + ' accuracy'] = df['madrid forest 2']
+    temp_df['austin 2' + degree_sign + ' accuracy'] = df['austin forest 2']
+    temp_df['madrid 0' + degree_sign + ' accuracy'].plot(style='r^-')
+    temp_df['austin 0' + degree_sign + ' accuracy'].plot(style='g^-')
+    temp_df['madrid 2' + degree_sign + ' accuracy'].plot(style='r')
+    temp_df['austin 2' + degree_sign + ' accuracy'].plot(style='g')
+    plt.title('Madrid and Austin accuracy comparision when trained on madrid data only\n with forest clf')
+    plt.xlabel('Days')
+    plt.xticks(range(14), range(1, 15))
+    plt.ylabel('Accuracy[%]')
+    plt.legend(loc=4)
 
     # plot madrid, austin temp histogram
     madrid_df = pd.read_csv(dataPreparation.raw_madrid_data_file, index_col=0)
@@ -123,26 +154,10 @@ def plot_results():
     plt.title('Madrid (blue) and Austin (green) temperature histogram')
     plt.xlabel('temperature[C'+ degree_sign + ']')
 
-    # plot madrid[0,2], austin[0,2] vs days
-    plt.figure(5)
-    temp_df['madrid 0' + degree_sign + ' accuracy'] = df['madrid tree 0']
-    temp_df['austin 0' + degree_sign + ' accuracy'] = df['austin tree 0']
-    temp_df['madrid 2' + degree_sign + ' accuracy'] = df['madrid tree 2']
-    temp_df['austin 2' + degree_sign + ' accuracy'] = df['austin tree 2']
-    temp_df['madrid 0' + degree_sign + ' accuracy'].plot(style='r^-')
-    temp_df['austin 0' + degree_sign + ' accuracy'].plot(style='g^-')
-    temp_df['madrid 2' + degree_sign + ' accuracy'].plot(style='r')
-    temp_df['austin 2' + degree_sign + ' accuracy'].plot(style='g')
-    plt.title('Mdrid and Austin accuracy comparisson with tree clf')
-    plt.xlabel('Days')
-    plt.xticks(range(14), range(1, 15))
-    plt.ylabel('Accuracy[%]')
-    plt.legend(loc=4)
-
     plt.show()
 
 
 if __name__ == "__main__":
-    #experiment()
+    experiment()
     plot_results()
 

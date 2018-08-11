@@ -131,6 +131,8 @@ def prepare_data(city, days_before=7, trending_before=7, average_before=7,
         df = pd.read_csv(raw_madrid_data_file, sep=',', header=0)
     elif city == 'austin':
         df = pd.read_csv(raw_austin_data_file, sep=',', header=0)
+    elif city == 'joined':
+        df = pd.concat([pd.read_csv(raw_austin_data_file, sep=',', header=0), pd.read_csv(raw_madrid_data_file, sep=',', header=0)])
     else:
         logging.info("ERROR with city name")
         return
@@ -172,7 +174,7 @@ def prepare_data(city, days_before=7, trending_before=7, average_before=7,
     df.drop(features, axis=1, inplace=True)
 
     file_name = get_file_name(city, days_before, fill_missing_from_previous_day)
-    df.to_csv(file_name)
+    df.to_csv(file_name, index=False)
     return file_name
 
 
