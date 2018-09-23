@@ -128,7 +128,6 @@ def plot_results():
     temp_df['madrid 0' + degree_sign + ' accuracy'] = df['madrid forest 0']\
 
 
-
     temp_df['austin 0' + degree_sign + ' accuracy'] = df['austin forest 0']
     temp_df['madrid 2' + degree_sign + ' accuracy'] = df['madrid forest 2']
     temp_df['austin 2' + degree_sign + ' accuracy'] = df['austin forest 2']
