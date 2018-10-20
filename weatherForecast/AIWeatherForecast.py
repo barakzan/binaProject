@@ -7,8 +7,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LinearRegression
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn import metrics
+from sklearn.model_selection import KFold
+from sklearn import tree
+from sklearn.datasets import load_iris
+from sklearn.externals.six import StringIO
+import pydot
 import logging
 
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
@@ -17,7 +20,7 @@ make_new_database = True
 
 def calculate_precision(df, x, feature):
     """calculate the precision of the algorithm up to x degrees"""
-    logging.info("calculate_precision")
+    #logging.info("calculate_precision")
 
     for i in range(x):
         df["precision_up_to_" + str(i) + "_degrees"] = np.where(df[feature] <= i, 1, 0)
@@ -108,9 +111,23 @@ def forecast(days_before=7, classifier_type='forest', fill_missing_from_previous
     austin_precision = calculate_results(austin_results_df, print_results=False)
     madrid_joined_precision = calculate_results(madrid_joined_results_df, print_results=False)
 
-    logging.info("END forecast: " + str(days_before) + " days before, forest: " + str(classifier_type))
+    folds = 10
+    kf = KFold(n_splits=folds)
+    fold_precision = [0, 0, 0, 0]
+    for train_index, validation_index in kf.split(train):
+        if classifier_type == 'linear':
+            break
+        classifier.fit(train.iloc[train_index].drop(['Mean TemperatureC'], axis=1), train.iloc[train_index]['Mean TemperatureC'])
+        madrid_validation_predictions = classifier.predict(train.iloc[validation_index].drop(['Mean TemperatureC'], axis=1))
+        kfold_results_df = pd.DataFrame({'real_value': train.iloc[validation_index]['Mean TemperatureC'],
+                                          'validation_predictions': madrid_validation_predictions})
+        madrid_precision = calculate_results(kfold_results_df, print_results=False)
+        fold_precision = [x + y for x, y in zip(fold_precision, madrid_precision)]
 
-    return [madrid_precision, austin_precision, madrid_joined_precision]
+    fold_precision = [fold_precision[0] / folds, fold_precision[1] / folds, fold_precision[2] / folds, fold_precision[3] / folds]
+
+    logging.info("END forecast: " + str(days_before) + " days before, classifier: " + str(classifier_type))
+    return [madrid_precision, austin_precision, madrid_joined_precision, fold_precision]
 
 
 def final_project_results(days_before=7, classifier_type='tree', fill_missing_from_previous_day=True, max_depth=10):
@@ -148,7 +165,6 @@ def final_project_results(days_before=7, classifier_type='tree', fill_missing_fr
         classifier = LinearRegression()
         joined_classifier = LinearRegression()
 
-
     # train madrid classifier
     classifier.fit(train.drop(['Mean TemperatureC'], axis=1), train['Mean TemperatureC'])
 
@@ -176,6 +192,16 @@ def final_project_results(days_before=7, classifier_type='tree', fill_missing_fr
     calculate_results(madrid_joined_results_df, print_results=True)
     print("\nyesterday precision:")
     predict_yesterday(print_results=True)
+
+    # print classifier tree
+    iris = load_iris()
+    clf = classifier.fit(iris.data, iris.target)
+    tree.export_graphviz(clf, out_file='tree.dot')
+
+    dot_data = StringIO()
+    tree.export_graphviz(clf, out_file=dot_data)
+    graph = pydot.graph_from_dot_data(dot_data.getvalue())
+    graph[0].write_pdf("iris.pdf")
 
 
 def predict_yesterday(print_results):
