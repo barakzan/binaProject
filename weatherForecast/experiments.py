@@ -8,25 +8,34 @@ import AIWeatherForecast
 import dataPreparation
 
 
-def experiment(max_days=14):
-    df = pd.DataFrame(np.zeros([24, max_days]), columns=[str(i) for i in range(1, max_days + 1)],
+def experiment(max_days=14, max_depth=10):
+    df = pd.DataFrame(np.zeros([36, max_days]), columns=[str(i) for i in range(1, max_days + 1)],
                       index=['madrid forest 0', 'austin forest 0', 'joined forest 0',
                              'madrid tree 0', 'austin tree 0', 'joined tree 0',
+                             'madrid linear 0', 'austin linear 0', 'joined linear 0',
                              'madrid forest 1', 'austin forest 1', 'joined forest 1',
                              'madrid tree 1', 'austin tree 1', 'joined tree 1',
+                             'madrid linear 1', 'austin linear 1', 'joined linear 1',
                              'madrid forest 2', 'austin forest 2', 'joined forest 2',
                              'madrid tree 2', 'austin tree 2', 'joined tree 2',
+                             'madrid linear 2', 'austin linear 2', 'joined linear 2',
                              'madrid forest 3', 'austin forest 3', 'joined forest 3',
-                             'madrid tree 3', 'austin tree 3', 'joined tree 3'])
+                             'madrid tree 3', 'austin tree 3', 'joined tree 3',
+                             'madrid linear 3', 'austin linear 3', 'joined linear 3'])
     for i in range(1, max_days + 1):
-        forest_res = AIWeatherForecast.forecast(i, use_forest_instead_of_tree=True)
+        forest_res = AIWeatherForecast.forecast(i, classifier_type='forest', max_depth=max_depth)
         madrid_forest_res = forest_res[0]
         austin_forest_res = forest_res[1]
         joined_forest_res = forest_res[2]
-        tree_res = AIWeatherForecast.forecast(i, use_forest_instead_of_tree=False)
+        tree_res = AIWeatherForecast.forecast(i, classifier_type='tree', max_depth=max_depth)
         madrid_tree_res = tree_res[0]
         austin_tree_res = tree_res[1]
         joined_tree_res = tree_res[2]
+        linear_res = AIWeatherForecast.forecast(i, classifier_type='linear', max_depth=max_depth)
+        madrid_linear_res = linear_res[0]
+        austin_linear_res = linear_res[1]
+        joined_linear_res = linear_res[2]
+
         for j in range(0, 4):
             df.loc['madrid forest ' + str(j), str(i)] = round(madrid_forest_res[j], 2)
             df.loc['austin forest ' + str(j), str(i)] = round(austin_forest_res[j], 2)
@@ -34,8 +43,14 @@ def experiment(max_days=14):
             df.loc['madrid tree ' + str(j), str(i)] = round(madrid_tree_res[j], 2)
             df.loc['austin tree ' + str(j), str(i)] = round(austin_tree_res[j], 2)
             df.loc['joined tree ' + str(j), str(i)] = round(joined_tree_res[j], 2)
+            df.loc['madrid linear ' + str(j), str(i)] = round(madrid_linear_res[j], 2)
+            df.loc['austin linear ' + str(j), str(i)] = round(austin_linear_res[j], 2)
+            df.loc['joined linear ' + str(j), str(i)] = round(joined_linear_res[j], 2)
 
     df.to_csv("results.csv")
+
+    AIWeatherForecast.final_project_results(days_before=3, classifier_type='tree', fill_missing_from_previous_day=True,
+                                            max_depth=10)
 
 
 def plot_results():
@@ -63,13 +78,24 @@ def plot_results():
     plt.figure(2)
     temp_df['tree 0' + degree_sign + ' accuracy'] = df['madrid tree 0']
     temp_df['forest 0' + degree_sign + ' accuracy'] = df['madrid forest 0']
+    temp_df['linear 0' + degree_sign + ' accuracy'] = df['madrid linear 0']
+
+    temp_df['linear 1' + degree_sign + ' accuracy'] = df['madrid linear 1']
+
     temp_df['tree 2' + degree_sign + ' accuracy'] = df['madrid tree 2']
     temp_df['forest 2' + degree_sign + ' accuracy'] = df['madrid forest 2']
+    temp_df['linear 2' + degree_sign + ' accuracy'] = df['madrid linear 2']
     temp_df['tree 0' + degree_sign + ' accuracy'].plot(style='r^-')
     temp_df['forest 0' + degree_sign + ' accuracy'].plot(style='g^-')
+    temp_df['linear 0' + degree_sign + ' accuracy'].plot(style='b^-')
+
+    temp_df['linear 1' + degree_sign + ' accuracy'].plot(style='b+')
+
     temp_df['tree 2' + degree_sign + ' accuracy'].plot(style='r')
     temp_df['forest 2' + degree_sign + ' accuracy'].plot(style='g')
-    plt.title('Madrid accuracy comparisson tree clf vs forest clf')
+    temp_df['linear 2' + degree_sign + ' accuracy'].plot(style='b')
+
+    plt.title('Madrid accuracy comparision tree clf vs forest clf vs linear clf')
     plt.xlabel('Days')
     plt.xticks(range(14), range(1, 15))
     plt.ylabel('Accuracy[%]')
@@ -154,7 +180,6 @@ def plot_results():
     plt.xlabel('temperature[C'+ degree_sign + ']')
 
     plt.show()
-
 
 if __name__ == "__main__":
     experiment()
