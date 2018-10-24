@@ -27,9 +27,9 @@ def calculate_precision(df, x, feature):
 
 
 def calculate_results(results_df, print_results=False):
-    results_df['abs_diff'] = abs(round(results_df['real_value'] + 0.5) - results_df['validation_predictions'])
+    results_df['abs_diff'] = abs(round(abs(results_df['real_value'] - results_df['validation_predictions']) + 0.4))
     calculate_precision(results_df, 4, 'abs_diff')
-    total = results_df["precision_up_to_1_degrees"].count()
+    total = results_df["precision_up_to_0_degrees"].count()
     accurate = results_df["precision_up_to_0_degrees"].sum()
     one_degree = results_df["precision_up_to_1_degrees"].sum()
     two_degrees = results_df["precision_up_to_2_degrees"].sum()
@@ -77,13 +77,16 @@ def forecast(days_before=7, classifier_type='forest', fill_missing_from_previous
     # choose tree, forest or linear classifier
     if classifier_type == 'forest':
         classifier = RandomForestClassifier(n_estimators=22, bootstrap=False, max_depth=max_depth)
+        classifierKfold = RandomForestClassifier(n_estimators=22, bootstrap=False, max_depth=max_depth)
         joined_classifier = RandomForestClassifier(n_estimators=22, bootstrap=False, max_depth=max_depth)
     elif classifier_type == 'tree':
         # train the decision tree classifier
         classifier = DecisionTreeClassifier()
+        classifierKfold = DecisionTreeClassifier()
         joined_classifier = DecisionTreeClassifier()
     else:
         classifier = LinearRegression()
+        classifierKfold = LinearRegression()
         joined_classifier = LinearRegression()
 
     # train madrid classifier
@@ -117,12 +120,12 @@ def forecast(days_before=7, classifier_type='forest', fill_missing_from_previous
     for train_index, validation_index in kf.split(train):
         if classifier_type == 'linear':
             break
-        classifier.fit(train.iloc[train_index].drop(['Mean TemperatureC'], axis=1), train.iloc[train_index]['Mean TemperatureC'])
-        madrid_validation_predictions = classifier.predict(train.iloc[validation_index].drop(['Mean TemperatureC'], axis=1))
+        classifierKfold.fit(train.iloc[train_index].drop(['Mean TemperatureC'], axis=1), train.iloc[train_index]['Mean TemperatureC'])
+        madrid_validation_predictions = classifierKfold.predict(train.iloc[validation_index].drop(['Mean TemperatureC'], axis=1))
         kfold_results_df = pd.DataFrame({'real_value': train.iloc[validation_index]['Mean TemperatureC'],
                                           'validation_predictions': madrid_validation_predictions})
-        madrid_precision = calculate_results(kfold_results_df, print_results=False)
-        fold_precision = [x + y for x, y in zip(fold_precision, madrid_precision)]
+        madrid_precision_kfold = calculate_results(kfold_results_df, print_results=False)
+        fold_precision = [x + y for x, y in zip(fold_precision, madrid_precision_kfold)]
 
     fold_precision = [fold_precision[0] / folds, fold_precision[1] / folds, fold_precision[2] / folds, fold_precision[3] / folds]
 
@@ -130,7 +133,7 @@ def forecast(days_before=7, classifier_type='forest', fill_missing_from_previous
     return [madrid_precision, austin_precision, madrid_joined_precision, fold_precision]
 
 
-def final_project_results(days_before=7, classifier_type='tree', fill_missing_from_previous_day=True, max_depth=10):
+def final_project_results(days_before=3, classifier_type='tree', fill_missing_from_previous_day=True, max_depth=13):
     trending_before = days_before
     average_before = days_before
 
@@ -156,13 +159,16 @@ def final_project_results(days_before=7, classifier_type='tree', fill_missing_fr
     # choose tree, forest or linear classifier
     if classifier_type == 'forest':
         classifier = RandomForestClassifier(n_estimators=22, bootstrap=False, max_depth=max_depth)
+        classifierKfold = RandomForestClassifier(n_estimators=22, bootstrap=False, max_depth=max_depth)
         joined_classifier = RandomForestClassifier(n_estimators=22, bootstrap=False, max_depth=max_depth)
     elif classifier_type == 'tree':
         # train the decision tree classifier
         classifier = DecisionTreeClassifier()
+        classifierKfold = DecisionTreeClassifier()
         joined_classifier = DecisionTreeClassifier()
     else:
         classifier = LinearRegression()
+        classifierKfold = LinearRegression()
         joined_classifier = LinearRegression()
 
     # train madrid classifier
@@ -183,38 +189,58 @@ def final_project_results(days_before=7, classifier_type='tree', fill_missing_fr
                                       'validation_predictions': austin_test_predictions})
     madrid_joined_results_df = pd.DataFrame({'real_value': test['Mean TemperatureC'],
                                              'validation_predictions': madrid_joined_test_predictions})
+
+    folds = 10
+    kf = KFold(n_splits=folds)
+    fold_precision = [0, 0, 0, 0]
+    for train_index, validation_index in kf.split(train):
+        if classifier_type == 'linear':
+            break
+        classifierKfold.fit(train.iloc[train_index].drop(['Mean TemperatureC'], axis=1),
+                       train.iloc[train_index]['Mean TemperatureC'])
+        madrid_validation_predictions = classifierKfold.predict(
+            train.iloc[validation_index].drop(['Mean TemperatureC'], axis=1))
+        kfold_results_df = pd.DataFrame({'real_value': train.iloc[validation_index]['Mean TemperatureC'],
+                                         'validation_predictions': madrid_validation_predictions})
+        madrid_precision = calculate_results(kfold_results_df, print_results=False)
+        fold_precision = [x + y for x, y in zip(fold_precision, madrid_precision)]
+
+    fold_precision = [fold_precision[0] / folds, fold_precision[1] / folds, fold_precision[2] / folds,
+                      fold_precision[3] / folds]
+
     # calculate precision
+    print("\nmadrid 10 fold precision:")
+    print("\tzero degree accuracy = ", round(fold_precision[0], 2))
+    print("\tone degrees accuracy = ", round(fold_precision[1], 2))
+    print("\ttwo degrees accuracy = ", round(fold_precision[2], 2))
+    print("\tthree degrees accuracy = ", round(fold_precision[3], 2))
+
     print("\nmadrid precision:")
     calculate_results(madrid_results_df, print_results=True)
+    # madrid_results_df.to_csv('tempResults\madrid.csv')
     print("\naustin precision:")
     calculate_results(austin_results_df, print_results=True)
+    # austin_results_df.to_csv('tempResults\\austin.csv')
     print("\nmadrid joined precision:")
     calculate_results(madrid_joined_results_df, print_results=True)
-    print("\nyesterday precision:")
-    predict_yesterday(print_results=True)
-
-    # print classifier tree
-    iris = load_iris()
-    clf = classifier.fit(iris.data, iris.target)
-    tree.export_graphviz(clf, out_file='tree.dot')
-
-    dot_data = StringIO()
-    tree.export_graphviz(clf, out_file=dot_data)
-    graph = pydot.graph_from_dot_data(dot_data.getvalue())
-    graph[0].write_pdf("iris.pdf")
+    # madrid_joined_results_df.to_csv('tempResults\\joined.csv')
+    print("\nyesterday precision madrid:")
+    predict_yesterday(print_results=True, city='madrid')
+    print("\nyesterday precision austin:")
+    predict_yesterday(print_results=True, city='austin')
 
 
-def predict_yesterday(print_results):
-    madrid_file_name = dataPreparation.get_file_name('madrid', 1, fill_missing_from_previous_day=True)
-    madrid_file = Path(madrid_file_name)
-    if not madrid_file.is_file():
-        dataPreparation.prepare_data('madrid', 1, 1, 1, fill_missing_from_previous_day=True)
+def predict_yesterday(print_results, city='madrid'):
+    city_file_name = dataPreparation.get_file_name(city, 1, fill_missing_from_previous_day=True)
+    city_file = Path(city_file_name)
+    if not city_file.is_file():
+        dataPreparation.prepare_data(city, 1, 1, 1, fill_missing_from_previous_day=True)
 
-    madrid_df = pd.read_csv(madrid_file_name, sep=',', header=0)
+    city_df = pd.read_csv(city_file_name, sep=',', header=0)
 
-    madrid_yesterday_results_df = pd.DataFrame({'real_value': madrid_df['Mean TemperatureC'],
-                                                'validation_predictions': madrid_df['Mean TemperatureC'].shift(1)})
-    return calculate_results(madrid_yesterday_results_df, print_results)
+    city_yesterday_results_df = pd.DataFrame({'real_value': city_df['Mean TemperatureC'],
+                                              'validation_predictions': city_df['Mean TemperatureC'].shift(1)})
+    return calculate_results(city_yesterday_results_df, print_results)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,23 @@
+madrid precision
+	zero degree accuracy =  37.74
+	one degrees accuracy =  75.99
+	two degrees accuracy =  95.08
+	three degrees accuracy =  99.12
+
+austin precision
+	zero degree accuracy =  13.45
+	one degrees accuracy =  37.46
+	two degrees accuracy =  58.66
+	three degrees accuracy =  78.8
+
+madrid joined precision
+	zero degree accuracy =  37.52
+	one degrees accuracy =  78.78
+	two degrees accuracy =  96.04
+	three degrees accuracy =  99.27
+
+yesterday precision
+	zero degree accuracy =  21.29
+	one degrees accuracy =  52.3
+	two degrees accuracy =  78.8
+	three degrees accuracy =  89.74
