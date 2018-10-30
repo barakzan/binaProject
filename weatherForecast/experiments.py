@@ -200,6 +200,6 @@ def plot_results():
 
 
 if __name__ == "__main__":
-    experiment()
-    plot_results()
-    AIWeatherForecast.final_project_results(days_before=3, classifier_type='tre')
+    # experiment()
+    # plot_results()
+    AIWeatherForecast.final_project_results(days_before=3, classifier_type='tree')
