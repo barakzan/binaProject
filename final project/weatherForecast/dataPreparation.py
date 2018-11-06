@@ -5,14 +5,14 @@ import logging
 
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
 
-raw_madrid_data_file = r'..\madridDataBase\original_data\weather_madrid_LEMD_1997_2015.csv'
-raw_austin_data_file = r'..\austinDataBase\original_data\austin_weather.csv'
+raw_madrid_data_file = r'.\madridDataBase\original_data\weather_madrid_LEMD_1997_2015.csv'
+raw_austin_data_file = r'.\austinDataBase\original_data\austin_weather.csv'
 labelName = 'CET'
 toPredict = 'Mean TemperatureC'
 
 
 def get_file_name(city, days_before, fill_missing_from_previous_day):
-    return '..\\{}DataBase\\{}_prepared_data_from_{}_days_before_and_fill_missing_from_previous_day={}.csv'\
+    return '.\\{}DataBase\\{}_prepared_data_from_{}_days_before_and_fill_missing_from_previous_day={}.csv'\
         .format(city, city, days_before, fill_missing_from_previous_day)
 
 
