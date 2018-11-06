@@ -10,7 +10,7 @@ import dataPreparation
 
 def experiment(max_days=14, max_depth=10):
     df = pd.DataFrame(np.zeros([48, max_days]), columns=[str(i) for i in range(1, max_days + 1)],
-                      index=['madrid forest 0', 'austin forest 0', 'joined forest 0','madrid kfold forest 0',
+                      index=['madrid forest 0', 'austin forest 0', 'joined forest 0', 'madrid kfold forest 0',
                              'madrid tree 0', 'austin tree 0', 'joined tree 0', 'madrid kfold tree 0',
                              'madrid linear 0', 'austin linear 0', 'joined linear 0', 'madrid kfold linear 0',
                              'madrid forest 1', 'austin forest 1', 'joined forest 1', 'madrid kfold forest 1',
@@ -43,15 +43,15 @@ def experiment(max_days=14, max_depth=10):
             df.loc['madrid forest ' + str(j), str(i)] = round(madrid_forest_res[j], 2)
             df.loc['austin forest ' + str(j), str(i)] = round(austin_forest_res[j], 2)
             df.loc['joined forest ' + str(j), str(i)] = round(joined_forest_res[j], 2)
-            df.loc['madrid kfold forest ' + str(j), str(i)] = round(joined_forest_res[j], 2)
+            df.loc['madrid kfold forest ' + str(j), str(i)] = round(madrid_kfold_forest_res[j], 2)
             df.loc['madrid tree ' + str(j), str(i)] = round(madrid_tree_res[j], 2)
             df.loc['austin tree ' + str(j), str(i)] = round(austin_tree_res[j], 2)
             df.loc['joined tree ' + str(j), str(i)] = round(joined_tree_res[j], 2)
-            df.loc['madrid kfold tree ' + str(j), str(i)] = round(joined_tree_res[j], 2)
+            df.loc['madrid kfold tree ' + str(j), str(i)] = round(madrid_kfold_tree_res[j], 2)
             df.loc['madrid linear ' + str(j), str(i)] = round(madrid_linear_res[j], 2)
             df.loc['austin linear ' + str(j), str(i)] = round(austin_linear_res[j], 2)
             df.loc['joined linear ' + str(j), str(i)] = round(joined_linear_res[j], 2)
-            df.loc['madrid kfold linear ' + str(j), str(i)] = round(joined_linear_res[j], 2)
+            df.loc['madrid kfold linear ' + str(j), str(i)] = round(madrid_kfold_linear_res[j], 2)
 
     df.to_csv("results.csv")
 
@@ -200,6 +200,6 @@ def plot_results():
 
 
 if __name__ == "__main__":
-    # experiment()
-    # plot_results()
+    #experiment()
+    plot_results()
     AIWeatherForecast.final_project_results(days_before=3, classifier_type='tree')
